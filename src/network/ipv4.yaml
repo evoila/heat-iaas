@@ -1,0 +1,115 @@
+heat_template_version: 2015-10-15
+description: >
+  Wrapper for simpler creation of network and subnet including the
+  most common parameters.
+
+parameter_groups:
+
+parameters:
+
+  name:
+    type: string
+    description: Name to be used for network and subnet
+    constraints:
+      - allowed_pattern: "[a-z][a-z0-9-]{1,}"
+
+  cidr:
+    type: string
+    description: The IP subnet to use in CIDR notation
+    constraints:
+      - custom_constraint: net_cidr
+
+  dns_nameservers:
+    type: comma_delimited_list
+    description: A list of DNS servers to propagate via DHCP
+    default:
+      - 8.8.8.8
+      - 8.8.4.4
+
+  host_routes:
+    type: json
+    description: A list of host routes to propagate in the subnet
+    default: []
+
+resources:
+
+  network:
+    type: OS::Neutron::Net
+    properties:
+      name: { get_param: name }
+
+  subnet:
+    type: OS::Neutron::Subnet
+    properties:
+      name: { get_param: name }
+      network_id: { get_resource: network }
+      cidr: { get_param: cidr }
+      dns_nameservers: { get_param: dns_nameservers }
+      host_routes: { get_param: host_routes }
+      ip_version: 4
+
+outputs:
+
+  network:
+    value: { get_resource: network }
+
+  network_admin_state_up:
+    value: { get_attr: [ network, admin_state_up ] }
+
+  network_mtu:
+    value: { get_attr: [ network, mtu ] }
+
+  network_name:
+    value: { get_attr: [ network, name ] }
+
+  network_port_security_enabled:
+    value: { get_attr: [ network, port_security_enabled ] }
+
+  network_show:
+    value: { get_attr: [ network, show ] }
+
+  network_status:
+    value: { get_attr: [ network, status] }
+
+  network_subnets:
+    value: { get_attr: [ network, subnets ] }
+
+  network_tenant_id:
+    value: { get_attr: [ network, tenant_id ] }
+
+
+  subnet:
+    value: { get_resource: subnet }
+
+  subnet_allocation_pools:
+    value: { get_attr: [ subnet, allocation_pools ] }
+
+  subnet_cidr:
+    value: { get_attr: [ subnet, cidr ] }
+
+  subnet_dns_nameservers:
+    value: { get_attr: [ subnet, dns_nameservers ] }
+
+  subnet_enable_dhcp:
+    value: { get_attr: [ subnet, enable_dhcp ] }
+
+  subnet_gateway_ip:
+    value: { get_attr: [ subnet, gateway_ip ] }
+
+  subnet_host_routes:
+    value: { get_attr: [ subnet, host_routes ] }
+
+  subnet_ip_version:
+    value: { get_attr: [ subnet, ip_version ] }
+
+  subnet_name:
+    value: { get_attr: [ subnet, name ] }
+
+  subnet_network_id:
+    value: { get_attr: [ subnet, network_id ] }
+
+  subnet_show:
+    value: { get_attr: [ subnet, show ] }
+
+  subnet_tenant_id:
+    value: { get_attr: [ subnet, tenant_id ] }

@@ -1,0 +1,193 @@
+heat_template_version: 2015-10-15
+description: >
+  Loadbalanced cluster is an extension of basic cluster which create a
+  load balancer and adds instances as members to the loadbalancer pool.
+
+parameter_groups:
+
+  - label: Cluster Properties
+    description: Cluster-related properties
+    parameters: [ count ]
+
+  - label: Instance Properties
+    description: Parameters used to create cluster instances
+    parameters: [ name, key, image, flavor, security_groups, config  ]
+
+  - label: Cluster Networking
+    description: Properties to build basic cluster networking.
+    parameters: [ subnets, frontend_port ]
+
+parameters:
+
+  count:
+    type: number
+    description: The number of cluster nodes to deploy
+    default: 3
+    constraints:
+      - range: { min: 1 }
+
+  name:
+    type: string
+    description: The name of the cluster
+    constraints:
+      - allowed_pattern: "[a-z][a-z0-9-]{1,}"
+
+  key:
+    type: string
+    description: SSH key to inject into the instance
+    constraints:
+      - custom_constraint: nova.keypair
+
+  image:
+    type: string
+    description: Image to deploy the instance from
+    constraints:
+      - custom_constraint: glance.image
+
+  flavor:
+    type: string
+    description: Flavor to use for the instance
+    constraints:
+      - custom_constraint: nova.flavor
+
+  subnets:
+    type: comma_delimited_list
+    description: List of subnets to connect the instance to
+
+  security_groups:
+    type: comma_delimited_list
+    description: List of security groups to attach to the instance
+
+  signals:
+    type: number
+    description: Number of signals received from WaitConditionHandle
+    default: 1
+
+  timeout:
+    type: number
+    description: Timeout for WaitCondition
+    default: 120
+
+  config:
+    type: string
+    description: Configuration to apply to the instance (has to be multipart)
+    default: None
+
+  frontend_port:
+    type: number
+    description: The port the load balancer will listen on
+    constraints:
+      - range: { min: 1, max: 65535 }
+
+  extras:
+    type: json
+    description: >
+      A map which is used in addition to the default parameters of a basic instance.
+
+  instance_type:
+    type: string
+    description: The resource type to use to create cluster instances. The type must be compatible to Lib::Instance::LoadBalanced
+    default: Lib::Instance::LoadBalanced
+    constraints:
+      - allowed_values:
+        - Lib::Instance::LoadBalanced
+        - Lib::Instance::LoadBalancedV1
+        - Evoila::IaaS::Instance::LoadBalanced
+
+  package_upgrade:
+    type: boolean
+    default: false
+
+resources:
+
+  policy_group:
+    type: OS::Nova::ServerGroup
+    properties:
+      name:
+        list_join: ['-', [{ get_param: name }, 'server-group']]
+      policies: [anti-affinity]
+
+  wait_condition:
+    type: OS::Heat::WaitCondition
+    properties:
+      handle: { get_resource: wait_handle }
+      count: { get_param: signals }
+      timeout: { get_param: timeout }
+
+  wait_handle:
+    type: OS::Heat::WaitConditionHandle
+
+  script1:
+    type: OS::Heat::SoftwareConfig
+    properties:
+      group: ungrouped
+      config:
+        str_replace:
+          template: |
+            #!/bin/bash
+            source /etc/environment
+            echo "Script for sending signals back to Heat API"
+            wc_notify --data-binary '{"status": "SUCCESS"}'
+          params:
+            wc_notify: { get_attr: ['wait_handle', 'curl_cli'] }
+
+  cluster_init:
+    type: OS::Heat::MultipartMime
+    properties:
+      parts:
+        - config: { get_param: config }
+          type: multipart
+        - config: { get_resource: script1 }
+
+  load_balancer:
+    type: Evoila::IaaS::LoadBalancer::TCP
+    properties:
+      name: { get_param: name }
+      subnet: { get_param: [subnets, 0] }
+      port: { get_param: frontend_port }
+
+  instances:
+    type: OS::Heat::ResourceGroup
+    properties:
+      count: { get_param: count }
+      resource_def:
+        type: { get_param: instance_type }
+        properties:
+          name:
+            list_join: ['-', [{ get_param: name }, '%index%']]
+          image: { get_param: image }
+          flavor: { get_param: flavor }
+          key: { get_param: key }
+          subnets: { get_param: subnets }
+          security_groups: { get_param: security_groups }
+          config: { get_resource: cluster_init }
+          pool: { get_attr: [load_balancer, pool] }
+          extras: { get_param: extras }
+          scheduler_hints:
+            group: { get_resource: policy_group }
+
+outputs:
+
+  attributes_id:
+    value: { get_attr: [ instances, attributes, id ] }
+
+  ids:
+    value: { get_attr: [ instances, id ] }
+
+  names:
+    value: { get_attr: [ instances, name ] }
+
+  first_addresses:
+    value: { get_attr: [ instances, first_address ] }
+
+  refs:
+    value: { get_attr: [ instances, refs ] }
+
+  show:
+    value: { get_attr: [ instances, show ] }
+  
+  vip_address:
+    value: { get_attr: [ load_balancer, vip_address ] }
+
+  vip_port_id:
+    value: { get_attr: [ load_balancer, vip_port_id ] }
