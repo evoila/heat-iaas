@@ -1,0 +1,6 @@
+find . -type f -print0 | xargs -0 gsed -i 's/Evoila::IaaS::LoadBalancer::TCP/Evoila::IaaS::LoadBalancer::TCP/g'
+find . -type f -print0 | xargs -0 gsed -i 's/Evoila::IaaS::LoadBalancer::TCP::HTTPSV2/Evoila::IaaS::LoadBalancer::HTTPS/g'
+find . -type f -print0 | xargs -0 gsed -i 's/Evoila::IaaS::Instance::LoadBalanced/Evoila::IaaS::Instance::LoadBalanced/g'
+find . -type f -print0 | xargs -0 gsed -i 's/Evoila::IaaS::Volume/Evoila::IaaS::Volume/g'
+find . -type f -print0 | xargs -0 gsed -i 's/Evoila::IaaS::Instance::Basic/Evoila::IaaS::Instance::Basic/g'
+find . -type f -print0 | xargs -0 gsed -i 's/Evoila::IaaS::Instance::RandomName/Evoila::IaaS::Instance::RandomName/g'

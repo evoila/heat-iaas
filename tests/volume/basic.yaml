@@ -1,0 +1,51 @@
+heat_template_version: 2015-10-15
+description: Basic Volume Test
+
+parameter_groups:
+
+parameters:
+
+  key:
+    type: string
+    constraints:
+      - custom_constraint: nova.keypair
+
+  image:
+    type: string
+    constraints:
+      - custom_constraint: glance.image
+
+  flavor:
+    type: string
+    constraints:
+      - custom_constraint: nova.flavor
+
+  public_network:
+    type: string
+    constraints:
+      - custom_constraint: neutron.network
+
+  dns_nameservers:
+    type: comma_delimited_list
+    description: List of DNS servers
+    default:
+      - 8.8.8.8
+
+resources:
+
+  node:
+    type: OS::Nova::Server
+    properties:
+      name: test-node
+      image: { get_param: image }
+      flavor: { get_param: flavor }
+      key_name: { get_param: key }
+
+  volume:
+    type: Lib::Volume
+    properties:
+      name: test
+      size: 1
+      instance: { get_resource: node }
+
+outputs:

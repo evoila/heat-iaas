@@ -1,0 +1,17 @@
+resource_registry:
+  "Evoila::IaaS::Cluster::Basic": src/cluster/basic.yaml
+  "Evoila::IaaS::Cluster::LoadBalanced": src/cluster/load_balanced.yaml
+  "Evoila::IaaS::Cluster::LoadBalanced::HTTPS": src/cluster/load_balanced_https.yaml
+  "Evoila::IaaS::Instance::Basic": src/instance/basic.yaml
+  "Evoila::IaaS::Instance::RandomName": src/instance/random_name.yaml
+  "Evoila::IaaS::Instance::LoadBalanced": src/instance/load_balanced_v2.yaml
+  "Evoila::IaaS::Instance::LoadBalanced::RandomName": src/instance/load_balanced_v2_random_name.yaml
+  "Evoila::IaaS::LoadBalancer::TCP": src/loadbalancer/tcp_v2.yaml
+  "Evoila::IaaS::LoadBalancer::HTTP": src/loadbalancer/http_v2.yaml
+  "Evoila::IaaS::LoadBalancer::HTTPS": src/loadbalancer/https_v2.yaml
+  "Evoila::IaaS::Network::Connectivity": src/network/connectivity.yaml
+  "Evoila::IaaS::Network::IPv4": src/network/ipv4.yaml
+  "Evoila::IaaS::NetworkLayout::Simple": src/network/layout/simple.yaml
+  "Evoila::IaaS::Secret::Container::TLS": src/secret/tls_container.yaml
+  "Evoila::IaaS::Secret::Container::TLS::Simple": src/secret/tls_container_simple.yaml
+  "Evoila::IaaS::Volume": src/volume/basic.yaml

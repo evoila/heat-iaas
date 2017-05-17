@@ -1,0 +1,147 @@
+heat_template_version: 2015-10-15
+description: Loadbalanced Instance
+
+parameter_groups:
+
+parameters:
+
+  key:
+    type: string
+    constraints:
+      - custom_constraint: nova.keypair
+
+  image:
+    type: string
+    constraints:
+      - custom_constraint: glance.image
+
+  flavor:
+    type: string
+    constraints:
+      - custom_constraint: nova.flavor
+
+  public_network:
+    type: string
+    constraints:
+      - custom_constraint: neutron.network
+
+  dns_nameservers:
+    type: comma_delimited_list
+    description: List of DNS servers
+    default:
+      - 8.8.8.8
+
+resources:
+
+  ###### SETUP ######
+
+  network1:
+    type: OS::Neutron::Net
+    properties:
+      name: test-network1
+
+  subnet1:
+    type: OS::Neutron::Subnet
+    properties:
+      name: test-subnet1
+      network_id: { get_resource: network1 }
+      cidr: 192.168.0.0/24
+      dns_nameservers: { get_param: dns_nameservers }
+
+  router:
+    type: OS::Neutron::Router
+    properties:
+      name: router
+      external_gateway_info:
+        network: { get_param: public_network }
+
+  router_interface1:
+    type: OS::Neutron::RouterInterface
+    properties:
+      router: { get_resource: router }
+      subnet: { get_resource: subnet1 }
+
+  security_group:
+    type: OS::Neutron::SecurityGroup
+    properties:
+      name: test-security-group
+      rules:
+        - remote_ip_prefix: 0.0.0.0/0
+
+  script1:
+    type: OS::Heat::SoftwareConfig
+    properties:
+      group: ungrouped
+      config: |
+        #!/bin/bash
+        echo "Configuration 1"
+
+  script2:
+    type: OS::Heat::SoftwareConfig
+    properties:
+      group: ungrouped
+      config: |
+        #!/bin/bash
+        echo "Configuration 2"
+
+  config:
+    type: OS::Heat::MultipartMime
+    properties:
+      parts:
+        - config: { get_resource: script1 }
+        - config: { get_resource: script2 }
+
+  ###### TESTS ######
+
+  loadbalancer:
+    type: OS::Neutron::LBaaS::LoadBalancer
+    properties:
+      name: loadbalancer
+      vip_subnet: { get_resource: subnet1 }
+
+  pool:
+    type: OS::Neutron::LBaaS::Pool
+    properties:
+      name: pool
+      protocol: TCP
+      lb_algorithm: ROUND_ROBIN
+      listener: { get_resource: listener }
+    depends_on:
+      - subnet1
+
+  monitor:
+    type: OS::Neutron::LBaaS::HealthMonitor
+    properties:
+      type: PING
+      delay: 15
+      max_retries: 5
+      timeout: 10
+      pool: { get_resource: pool }
+
+  listener:
+    type: OS::Neutron::LBaaS::Listener
+    properties:
+      name: listener
+      loadbalancer: { get_resource: loadbalancer }
+      protocol: TCP
+      protocol_port: 22
+
+  instance1:
+    type: Lib::Instance::LoadBalancedV2
+    properties:
+      name: instance1
+      key: { get_param: key }
+      image: { get_param: image }
+      flavor: { get_param: flavor }
+      subnets:
+        - { get_resource: subnet1 }
+      security_groups:
+        - default
+        - { get_resource: security_group }
+      config: { get_resource: config }
+      extras:
+        pool: { get_resource: pool }
+        port: 22
+
+outputs:
+

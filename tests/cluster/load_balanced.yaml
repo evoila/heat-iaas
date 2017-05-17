@@ -1,0 +1,109 @@
+heat_template_version: 2015-10-15
+description: Load Balanced Cluster Test
+
+parameter_groups:
+
+parameters:
+
+  key:
+    type: string
+    constraints:
+      - custom_constraint: nova.keypair
+
+  image:
+    type: string
+    constraints:
+      - custom_constraint: glance.image
+
+  flavor:
+    type: string
+    constraints:
+      - custom_constraint: nova.flavor
+
+  public_network:
+    type: string
+    constraints:
+      - custom_constraint: neutron.network
+
+  dns_nameservers:
+    type: comma_delimited_list
+    description: List of DNS servers
+    default:
+      - 8.8.8.8
+
+resources:
+
+  router:
+    type: OS::Neutron::Router
+    properties:
+      name: lbc-router
+      external_gateway_info:
+        network: { get_param: public_network }
+
+  networking1:
+    type: Lib::Cluster::Networking::Simple
+    properties:
+      name: lbc-net
+      network_cidr: 192.168.0.0/24
+      router: { get_resource: router }
+      dns_nameservers: { get_param: dns_nameservers }
+
+  security_group:
+    type: OS::Neutron::SecurityGroup
+    properties:
+      name: lbc-secgrp
+      rules:
+        - remote_ip_prefix: 0.0.0.0/0
+
+  script1:
+    type: OS::Heat::SoftwareConfig
+    properties:
+      group: ungrouped
+      config: |
+        #!/bin/bash
+        echo "Configuration 1"
+
+  script2:
+    type: OS::Heat::SoftwareConfig
+    properties:
+      group: ungrouped
+      config: |
+        #!/bin/bash
+        echo "Configuration 2"
+
+  config:
+    type: OS::Heat::MultipartMime
+    properties:
+      parts:
+        - config: { get_resource: script1 }
+        - config: { get_resource: script2 }
+
+  load_balanced_cluster1:
+    type: Lib::Cluster::LoadBalanced
+    properties:
+      count: 2
+      name: lbc
+      key: { get_param: key }
+      image: { get_param: image }
+      flavor: { get_param: flavor }
+      security_groups:
+        - { get_resource: security_group }
+      config: { get_resource: config }
+      subnets:
+        - { get_attr: [networking1, subnet] }
+      extras:
+        port: 22 
+        volume_count: 0
+        volume_size: 0
+      frontend_port: 22
+
+outputs:
+
+  lb1_instances:
+    value: { get_attr: [load_balanced_cluster1, first_addresses] }
+
+  pool_vip_address_1:
+    value: { get_attr: [ load_balanced_cluster1, vip_address ] }
+
+  pool_port_id:
+    value: { get_attr: [ load_balanced_cluster1, vip_port_id ] }

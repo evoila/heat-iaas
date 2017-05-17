@@ -1,0 +1,155 @@
+heat_template_version: 2015-10-15
+description: >
+  Creates a basic instance with standard configuration and behavior.
+
+parameter_groups:
+
+parameters:
+
+  name:
+    type: string
+    description: Name of the instance
+    constraints:
+      - allowed_pattern: "[a-z][a-z0-9-]{1,}"
+
+  key:
+    type: string
+    description: SSH key to inject into the instance
+    constraints:
+      - custom_constraint: nova.keypair
+
+  image:
+    type: string
+    description: Image to deploy the instance from
+    constraints:
+      - custom_constraint: glance.image
+
+  flavor:
+    type: string
+    description: Flavor to use for the instance
+    constraints:
+      - custom_constraint: nova.flavor
+
+  subnets:
+    type: comma_delimited_list
+    description: List of subnets to connect the instance to
+
+  security_groups:
+    type: comma_delimited_list
+    description: List of security groups to attach to the instance
+
+  config:
+    type: string
+    description: Configuration to apply to the instance (has to be multipart)
+    default: None
+
+  scheduler_hints:
+    type: json
+    description: A map used for scheduling a set of instances on different hosts
+    default: {}
+
+  extras:
+    type: json
+    description: >
+      A map which is used in addition to the default parameters of a basic instance.
+      It provides information about attached volumes and stores specific values
+      from the map during the volume resource group creation.
+    default:
+      volume_count: 0
+      volume_size: 0
+
+  software_config_transport:
+    type: string
+    default: POLL_SERVER_HEAT
+    constraints:
+      - allowed_values:
+          - POLL_SERVER_HEAT
+          - POLL_SERVER_CFN
+          - POLL_TEMP_URL
+          - ZAQAR_MESSAGE
+
+  package_upgrade:
+    type: boolean
+    default: false
+
+resources:
+
+  config1:
+    type: OS::Heat::CloudConfig
+    properties:
+      cloud_config:
+        users:
+          - default
+        final_message: "The system is finally up, after $UPTIME seconds"
+        package_upgrade: { get_param: package_upgrade }
+
+  server_init:
+    type: OS::Heat::MultipartMime
+    properties:
+      parts:
+        - config: { get_resource: config1 }
+        - config: { get_param: config }
+          type: multipart
+
+  node:
+    type: OS::Nova::Server
+    properties:
+      name: { get_param: name }
+      image: { get_param: image }
+      flavor: { get_param: flavor }
+      key_name: { get_param: key }
+      networks:
+        repeat:
+          for_each:
+            <%subnet_name%>: { get_param: subnets }
+          template:
+            subnet: <%subnet_name%>
+      security_groups: { get_param: security_groups }
+      user_data_format: SOFTWARE_CONFIG
+      user_data: {get_resource: server_init}
+      scheduler_hints: { get_param: scheduler_hints }
+      software_config_transport: { get_param: software_config_transport }
+
+  volumes:
+    type: OS::Heat::ResourceGroup
+    properties:
+      count: { get_param: [extras, volume_count] }
+      resource_def:
+        type: Evoila::IaaS::Volume
+        properties:
+          name:
+            list_join: ['-', [ { get_param: name }, 'vol', '%index%']]
+          instance: { get_resource: node }
+          size: { get_param: [extras, volume_size] }
+
+outputs:
+
+  id:
+    value: { get_resource: node }
+
+  accessIPv4:
+    value: { get_attr: [node, accessIPv4] }
+
+  accessIPv6:
+    value: { get_attr: [node, accessIPv6] }
+
+  addresses:
+    value: { get_attr: [node, addresses] }
+
+  console_urls:
+    value: { get_attr: [node, console_urls] }
+
+  first_address:
+    value: { get_attr: [node, first_address] }
+
+  instance_name:
+    value: { get_attr: [node, instance_name] }
+
+  name:
+    value: { get_attr: [node, name] }
+
+  networks:
+    value: { get_attr: [node, networks] }
+
+  show:
+    value: { get_attr: [node, show] }

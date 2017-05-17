@@ -1,0 +1,51 @@
+heat_template_version: 2015-10-15
+
+parameter_groups:
+
+parameters:
+
+  name:
+    type: string
+
+  network_cidr:
+    type: string
+    constraints:
+      - custom_constraint: net_cidr
+
+  router:
+    type: string
+    constraints:
+      - custom_constraint: neutron.router
+
+  dns_nameservers:
+    type: comma_delimited_list
+    default: []
+
+  host_routes:
+    type: json
+    default: []
+
+resources:
+
+  service_network:
+    type: Evoila::IaaS::Network::IPv4
+    properties:
+      name:
+        list_join: ['-', [{ get_param: name }, 'net']]
+      cidr: { get_param: network_cidr }
+      dns_nameservers: { get_param: dns_nameservers }
+      host_routes: { get_param: host_routes }
+
+  router_interface:
+    type: OS::Neutron::RouterInterface
+    properties:
+      router: { get_param: router }
+      subnet: { get_attr: [service_network, subnet] }
+
+outputs:
+
+  network:
+    value: { get_attr: [service_network, network] }
+
+  subnet:
+    value: { get_attr: [service_network, subnet] }

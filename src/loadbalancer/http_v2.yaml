@@ -1,0 +1,85 @@
+heat_template_version: 2015-10-15
+description: >
+  This is a load balancer for HTTP services based on LBaaS V2. It
+  implements a best practice configuration.
+
+parameter_groups:
+
+parameters:
+
+  name:
+    description: Name of the load balancer
+    type: string
+    constraints:
+      - allowed_pattern: "[a-z][a-z0-9-]{1,}"
+
+  subnet:
+    description: Subnet to allocate the VIP in
+    type: string
+    constraints:
+      - custom_constraint: neutron.subnet
+
+  frontend_port:
+    type: number
+    description: Port the load balancer should listen on
+    default: 80
+    constraints:
+      - range: { min: 1, max: 65535 }
+
+  url_path:
+    type: string
+    default: '/'
+
+  expected_codes:
+    type: string
+    default: 100-299
+
+resources:
+
+  loadbalancer:
+    type: OS::Neutron::LBaaS::LoadBalancer
+    properties:
+      name:
+        list_join: ['-', [{ get_param: name }, "loadbalancer"]]
+      vip_subnet: { get_param: subnet }
+
+  listener:
+    type: OS::Neutron::LBaaS::Listener
+    properties:
+      name:
+        list_join: ['-', [{ get_param: name }, "listener"]]
+      loadbalancer: { get_resource: loadbalancer }
+      protocol: HTTP
+      protocol_port: { get_param: frontend_port }
+
+  pool:
+    type: OS::Neutron::LBaaS::Pool
+    properties:
+      name:
+        list_join: ['-', [{ get_param: name }, "pool"]]
+      protocol: HTTP
+      lb_algorithm: ROUND_ROBIN
+      listener: { get_resource: listener }
+
+  monitor:
+    type: OS::Neutron::LBaaS::HealthMonitor
+    properties:
+      type: HTTP
+      expected_codes: { get_param: expected_codes }
+      http_method: GET
+      url_path: { get_param: url_path }
+      delay: 5
+      max_retries: 3
+      timeout: 2
+      pool: { get_resource: pool }
+
+outputs:
+
+  vip_address:
+    value: { get_attr: [ loadbalancer, vip_address] }
+
+  vip_port_id:
+    value: { get_attr: [ loadbalancer, vip_port_id] }
+
+  pool:
+    value: { get_resource: pool }

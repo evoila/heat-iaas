@@ -1,0 +1,119 @@
+heat_template_version: 2015-10-15
+description: >
+  Creates an instance of Evoila::IaaS::Instance::Basic and adds it as a member
+  to an existing LBaaS pool.
+
+parameter_groups:
+
+parameters:
+
+  name:
+    type: string
+    description: Name of the instance
+    constraints:
+      - allowed_pattern: "[a-z][a-z0-9-]{1,}"
+
+  key:
+    type: string
+    description: SSH key to inject into the instance
+    constraints:
+      - custom_constraint: nova.keypair
+
+  image:
+    type: string
+    description: Image to deploy the instance from
+    constraints:
+      - custom_constraint: glance.image
+
+  flavor:
+    type: string
+    description: Flavor to use for the instance
+    constraints:
+      - custom_constraint: nova.flavor
+
+  subnets:
+    type: comma_delimited_list
+    description: List of subnets to connect the instance to
+
+  security_groups:
+    type: comma_delimited_list
+    description: List of security groups to attach to the instance
+
+  config:
+    type: string
+    description: Configuration to apply to the instance (has to be multipart)
+    default: None
+
+  scheduler_hints:
+    type: json
+    description: A map used for scheduling a set of instances on different hosts
+    default: {}
+
+  pool:
+    type: string
+    description: The load balancer pool
+
+  extras:
+    type: json
+    description: >
+      A map which is used in addition to the default parameters.
+
+  package_upgrade:
+    type: boolean
+    default: false
+
+resources:
+
+  node:
+    type: Evoila::IaaS::Instance::Basic
+    properties:
+      name: { get_param: name }
+      key: { get_param: key }
+      image: { get_param: image }
+      flavor: { get_param: flavor }
+      config: { get_param: config }
+      security_groups: { get_param: security_groups }
+      subnets: { get_param: subnets }
+      scheduler_hints: { get_param: scheduler_hints }
+      extras: { get_param: extras }
+      package_upgrade: { get_param: package_upgrade }
+
+  member:
+    type: OS::Neutron::LBaaS::PoolMember
+    properties:
+      pool: { get_param: pool }
+      address: {get_attr: [node, first_address]}
+      protocol_port: { get_param: [extras, port] }
+      subnet: { str_split: [',', list_join: [',', { get_param: subnets }], 0 ] }
+
+outputs:
+
+  id:
+    value: { get_attr: [ node, id ] }
+
+  accessIPv4:
+    value: { get_attr: [node, accessIPv4] }
+
+  accessIPv6:
+    value: { get_attr: [node, accessIPv6] }
+
+  addresses:
+    value: { get_attr: [node, addresses] }
+
+  console_urls:
+    value: { get_attr: [node, console_urls] }
+
+  first_address:
+    value: { get_attr: [node, first_address] }
+
+  instance_name:
+    value: { get_attr: [node, instance_name] }
+
+  name:
+    value: { get_attr: [node, name] }
+
+  networks:
+    value: { get_attr: [node, networks] }
+
+  show:
+    value: { get_attr: [node, show] }

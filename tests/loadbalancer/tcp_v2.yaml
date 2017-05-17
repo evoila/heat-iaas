@@ -1,0 +1,92 @@
+heat_template_version: 2015-04-30
+description: TCP Load Balancer Test
+
+parameter_groups:
+
+parameters:
+
+  key:
+    type: string
+    constraints:
+      - custom_constraint: nova.keypair
+
+  image:
+    type: string
+    constraints:
+      - custom_constraint: glance.image
+
+  flavor:
+    type: string
+    constraints:
+      - custom_constraint: nova.flavor
+
+  public_network:
+    type: string
+    constraints:
+      - custom_constraint: neutron.network
+
+  dns_nameservers:
+    type: comma_delimited_list
+    description: List of DNS servers
+    default:
+      - 8.8.8.8
+
+resources:
+
+  network1:
+    type: OS::Neutron::Net
+    properties:
+      name: testnetwork
+
+  network2:
+    type: OS::Neutron::Net
+    properties:
+      name: testnetwork2
+
+  subnet1:
+    type: OS::Neutron::Subnet
+    properties:
+      name: testsubnet
+      network_id: { get_resource: network }
+      cidr: 192.168.0.0/24
+      dns_nameservers: { get_param: dns_nameservers }
+
+  subnet2:
+    type: OS::Neutron::Subnet
+    properties:
+      name: testsubnet2
+      network_id: { get_resource: network2 }
+      cidr: 192.168.10.0/24
+      dns_nameservers: { get_param: dns_nameservers }
+
+  loadbalancer1:
+    type: Lib::LoadBalancer::TCPV2
+    properties:
+      name: testlb1
+      subnet: { get_resource: subnet1 }
+      port: 22
+
+  loadbalancer2:
+    type: Lib::LoadBalancer::TCPV2
+    properties:
+      name: testlb2
+      subnet: { get_resource: subnet1 }
+      port: 22
+
+  loadbalancer3:
+    type: Lib::LoadBalancer::TCPV2
+    properties:
+      name: testlb3
+      subnet: { get_resource: subnet2 }
+      port: 22
+      
+outputs:
+
+  loadbalancer1:
+    value: { get_resource: loadbalancer1 }
+
+  loadbalancer2:
+    value: { get_resource: loadbalancer2 }
+
+  loadbalancer3:
+    value: { get_resource: loadbalancer3 }

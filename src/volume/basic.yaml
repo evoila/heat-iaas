@@ -1,0 +1,91 @@
+heat_template_version: 2015-10-15
+description: >
+  Simplifies the creation of a volume and attachment to an existing
+  instance.
+
+parameter_groups:
+
+parameters:
+
+  name:
+    type: string
+    description: The name of the volume
+    constraints:
+      - allowed_pattern: "[a-z][a-z0-9-]{1,}"
+
+  size:
+    type: number
+    description: The size of the volume in GB
+    constraints:
+      - range: { min: 1 }
+
+  instance:
+    type: string
+    description: The instance to attach the volume to
+    constraints:
+      - custom_constraint: nova.server
+
+resources:
+
+  volume:
+    type: OS::Cinder::Volume
+    properties:
+      name: { get_param: name }
+      size: { get_param: size }
+
+  attachment:
+    type: OS::Cinder::VolumeAttachment
+    properties:
+      volume_id: { get_resource: volume }
+      instance_uuid: { get_param: instance }
+
+outputs:
+
+  volume_attachments:
+    value: { get_attr: [ volume, attachments ] }
+
+  volume_availability_zone:
+    value: { get_attr: [ volume, availability_zone ] }
+
+  volume_bootable:
+    value: { get_attr: [ volume, bootable ] }
+
+  volume_created_at:
+    value: { get_attr: [ volume, created_at ] }
+
+  volume_display_description:
+    value: { get_attr: [ volume, display_description ] }
+
+  volume_display_name:
+    value: { get_attr: [ volume, display_name ] }
+
+  volume_encrypted:
+    value: { get_attr: [ volume, encrypted ] }
+
+  volume_metadata:
+    value: { get_attr: [ volume, metadata ] }
+
+  volume_metadata_values:
+    value: { get_attr: [ volume, metadata_values ] }
+
+  volume_show:
+    value: { get_attr: [ volume, show ] }
+
+  volume_size:
+    value: { get_attr: [ volume, size ] }
+
+  volume_snapshot_id:
+    value: { get_attr: [ volume, snapshot_id ] }
+
+  volume_source_volid:
+    value: { get_attr: [ volume, source_volid ] }
+
+  volume_status:
+    value: { get_attr: [ volume, status ] }
+
+  volume_volume_type:
+    value: { get_attr: [ volume, volume_type ] }
+
+
+  attachment_show:
+    value: { get_attr: [ attachment, show ] }

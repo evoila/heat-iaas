@@ -1,0 +1,118 @@
+heat_template_version: 2015-10-15
+description: Basic Cluster Test
+
+parameter_groups:
+
+parameters:
+
+  key:
+    type: string
+    constraints:
+      - custom_constraint: nova.keypair
+
+  image:
+    type: string
+    constraints:
+      - custom_constraint: glance.image
+
+  flavor:
+    type: string
+    constraints:
+      - custom_constraint: nova.flavor
+
+  public_network:
+    type: string
+    constraints:
+      - custom_constraint: neutron.network
+
+  dns_nameservers:
+    type: comma_delimited_list
+    description: List of DNS servers
+    default:
+      - 8.8.8.8
+
+resources:
+
+  router:
+    type: OS::Neutron::Router
+    properties:
+      name: router
+      external_gateway_info:
+        network: { get_param: public_network }
+
+  simple_networking1:
+    type: Lib::Cluster::Networking::Simple
+    properties:
+      name: testcluster1
+      network_cidr: 192.168.0.0/24
+      router: { get_resource: router }
+      dns_nameservers: { get_param: dns_nameservers }
+
+  simple_networking2:
+    type: Lib::Cluster::Networking::Simple
+    properties:
+      name: testcluster2
+      network_cidr: 192.168.10.0/24
+      router: { get_resource: router }
+      dns_nameservers: { get_param: dns_nameservers }
+
+  security_group:
+    type: OS::Neutron::SecurityGroup
+    properties:
+      name: test-security-group
+      rules:
+        - remote_ip_prefix: 0.0.0.0/0
+
+  script1:
+    type: OS::Heat::SoftwareConfig
+    properties:
+      group: ungrouped
+      config: |
+        #!/bin/bash
+        echo "Configuration 1"
+
+  config:
+    type: OS::Heat::MultipartMime
+    properties:
+      parts:
+        - config: { get_resource: script1 }
+
+  flexible_cluster_1:
+    type: Lib::Cluster::Basic
+    properties:
+      count: 2
+      name: basic0
+      key: { get_param: key }
+      image: { get_param: image }
+      flavor: { get_param: flavor }
+      security_groups:
+        - { get_resource: security_group }
+      config: { get_resource: config }
+      subnets:
+        - { get_attr: [simple_networking1, subnet] }
+      extras:
+        volume_count: 0
+        volume_size: 0
+
+  flexible_cluster_2:
+    type: Lib::Cluster::Basic
+    properties:
+      count: 2
+      name: basic1
+      key: { get_param: key }
+      image: { get_param: image }
+      flavor: { get_param: flavor }
+      security_groups:
+        - { get_resource: security_group }
+      config: { get_resource: config }
+      subnets:
+        - { get_attr: [simple_networking2, subnet] }
+      extras:
+        volume_count: 2
+        volume_size: 1
+    depends_on: flexible_cluster_1
+
+outputs:
+
+  flexible_cluster_1:
+    value: { get_attr: [flexible_cluster_1, instances] }
