@@ -5,8 +5,12 @@ resource_registry:
   "Evoila::IaaS::Instance::Basic": src/instance/basic.yaml
   "Evoila::IaaS::Instance::RandomName": src/instance/random_name.yaml
   "Evoila::IaaS::Instance::LoadBalanced": src/instance/load_balanced_v2.yaml
+  "Evoila::IaaS::Instance::LoadBalancedV1": src/instance/load_balanced_v1.yaml
+  "Evoila::IaaS::Instance::LoadBalancedV2": src/instance/load_balanced_v2.yaml
   "Evoila::IaaS::Instance::LoadBalanced::RandomName": src/instance/load_balanced_v2_random_name.yaml
   "Evoila::IaaS::LoadBalancer::TCP": src/loadbalancer/tcp_v2.yaml
+  "Evoila::IaaS::LoadBalancer::TCPV1": src/loadbalancer/tcp_v1.yaml
+  "Evoila::IaaS::LoadBalancer::TCPV2": src/loadbalancer/tcp_v2.yaml
   "Evoila::IaaS::LoadBalancer::HTTP": src/loadbalancer/http_v2.yaml
   "Evoila::IaaS::LoadBalancer::HTTPS": src/loadbalancer/https_v2.yaml
   "Evoila::IaaS::Network::Connectivity": src/network/connectivity.yaml

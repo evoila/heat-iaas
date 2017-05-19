@@ -90,9 +90,9 @@ parameters:
     default: Lib::Instance::LoadBalanced
     constraints:
       - allowed_values:
-        - Lib::Instance::LoadBalanced
-        - Lib::Instance::LoadBalancedV1
         - Evoila::IaaS::Instance::LoadBalanced
+        - Evoila::IaaS::Instance::LoadBalancedV1
+        - Evoila::IaaS::Instance::LoadBalancedV2
 
   package_upgrade:
     type: boolean

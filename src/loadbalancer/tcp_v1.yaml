@@ -1,0 +1,71 @@
+heat_template_version: 2015-10-15                                                                                                                              
+description: >
+  This is a load balancer for TCP services based on LBaaS V1. It
+  implements a best practice configuration.
+
+parameter_groups:
+
+parameters:
+
+  name:
+    description: Name of the load balancer
+    type: string
+    constraints:
+      - allowed_pattern: "[a-z][a-z0-9-]{1,}"
+
+  subnet:
+    description: Subnet to allocate the VIP in
+    type: string
+    constraints:
+      - custom_constraint: neutron.subnet
+
+  port:
+    type: number
+    description: Port the load balancer should listen on
+    constraints:
+      - range: { min: 1, max: 65535 }
+
+resources:
+
+  monitor:
+    type: OS::Neutron::HealthMonitor
+    properties:
+      type: TCP
+      delay: 5
+      max_retries: 3
+      timeout: 2
+
+  pool:
+    type: OS::Neutron::Pool
+    properties:
+      name:
+        list_join: ['-', [{ get_param: name }, 'pool']]
+      protocol: TCP
+      subnet_id: { get_param: subnet }
+      lb_method: ROUND_ROBIN
+      monitors:
+        - { get_resource: monitor }
+      vip:
+        name:
+          list_join: ['-', [{ get_param: name }, 'vip']]
+        protocol_port: { get_param: port }
+        session_persistence:
+          type: SOURCE_IP
+        subnet: { get_param: subnet }
+
+  loadbalancer:
+    type: OS::Neutron::LoadBalancer
+    properties:
+      pool_id: { get_resource: pool }
+      protocol_port: { get_param: port }
+
+outputs:
+
+  vip_address:
+    value: { get_attr: [ pool, vip, address ] }
+
+  vip_port_id:
+    value: { get_attr: [ pool, vip, port_id ] }
+
+  pool:
+    value: { get_resource: pool }
