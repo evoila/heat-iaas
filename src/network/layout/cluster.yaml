@@ -1,0 +1,71 @@
+heat_template_version: 2015-10-15
+
+parameter_groups:
+
+parameters:
+
+  name:
+    type: string
+
+  service_cidr:
+    type: string
+    constraints:
+      - custom_constraint: net_cidr
+
+  cluster_cidr:
+    type: string
+    constraints:
+      - custom_constraint: net_cidr
+
+  router:
+    type: string
+    constraints:
+      - custom_constraint: neutron.router
+
+  dns_nameservers:
+    type: comma_delimited_list
+    default: []
+
+  host_routes:
+    type: json
+    default: []
+
+resources:
+
+  service_network:
+    type: Evoila::IaaS::Network::IPv4
+    properties:
+      name:
+        list_join: ['-', [{ get_param: name }, 'service-net']]
+      cidr: { get_param: service_cidr }
+      dns_nameservers: { get_param: dns_nameservers }
+      host_routes: { get_param: host_routes }
+
+  cluster_network:
+    type: Evoila::IaaS::Network::IPv4::Private
+    properties:
+      name:
+        list_join: ['-', [{ get_param: name }, 'cluster-net']]
+      cidr: { get_param: cluster_cidr }
+      dns_nameservers: []
+      host_routes: []
+
+  router_interface:
+    type: OS::Neutron::RouterInterface
+    properties:
+      router: { get_param: router }
+      subnet: { get_attr: [service_network, subnet] }
+
+outputs:
+
+  service_network:
+    value: { get_attr: [service_network, network] }
+
+  service_subnet:
+    value: { get_attr: [service_network, subnet] }
+
+  cluster_network:
+    value: { get_attr: [cluster_network, network] }
+
+  cluster_subnet:
+    value: { get_attr: [cluster_network, subnet] }

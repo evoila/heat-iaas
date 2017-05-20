@@ -13,6 +13,7 @@ resource_registry:
   "Evoila::IaaS::Network::IPv4": src/network/ipv4.yaml
   "Evoila::IaaS::Network::IPv4::Private": src/network/private_ipv4.yaml
   "Evoila::IaaS::NetworkLayout::Simple": src/network/layout/simple.yaml
+  "Evoila::IaaS::Network::Layout::Cluster": src/network/layout/cluster.yaml
   "Evoila::IaaS::Secret::Container::TLS": src/secret/tls_container.yaml
   "Evoila::IaaS::Secret::Container::TLS::Simple": src/secret/tls_container_simple.yaml
   "Evoila::IaaS::Volume": src/volume/basic.yaml
