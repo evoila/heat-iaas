@@ -11,6 +11,7 @@ resource_registry:
   "Evoila::IaaS::LoadBalancer::HTTPS": src/loadbalancer/https_v2.yaml
   "Evoila::IaaS::Network::Connectivity": src/network/connectivity.yaml
   "Evoila::IaaS::Network::IPv4": src/network/ipv4.yaml
+  "Evoila::IaaS::Network::IPv4::Private": src/network/private_ipv4.yaml
   "Evoila::IaaS::NetworkLayout::Simple": src/network/layout/simple.yaml
   "Evoila::IaaS::Secret::Container::TLS": src/secret/tls_container.yaml
   "Evoila::IaaS::Secret::Container::TLS::Simple": src/secret/tls_container_simple.yaml
