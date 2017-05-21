@@ -86,12 +86,12 @@ parameters:
 
   instance_type:
     type: string
-    description: The resource type to use to create cluster instances. The type must be compatible to Lib::Instance::LoadBalanced
-    default: Lib::Instance::LoadBalanced
+    description: The resource type to use to create cluster instances. The type must be compatible to Evoila::IaaS::Instance::LoadBalanced
+    default: Evoila::IaaS::Instance::LoadBalanced
     constraints:
       - allowed_values:
-        - Lib::Instance::LoadBalanced
-        - Lib::Instance::LoadBalancedV1
+        - Evoila::IaaS::Instance::LoadBalanced
+        - Evoila::IaaS::Instance::LoadBalancedV1
         - Evoila::IaaS::Instance::LoadBalanced
 
   package_upgrade:

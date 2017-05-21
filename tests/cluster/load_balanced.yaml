@@ -79,7 +79,7 @@ resources:
         - config: { get_resource: script2 }
 
   load_balanced_cluster1:
-    type: Evoila::IaaS::Cluster::Evoila::IaaS::Cluster::LoadBalanced
+    type: Evoila::IaaS::Cluster::LoadBalanced
     properties:
       count: 2
       name: lbc
