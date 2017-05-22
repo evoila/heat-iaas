@@ -92,7 +92,7 @@ parameters:
       - allowed_values:
         - Evoila::IaaS::Instance::LoadBalanced
         - Evoila::IaaS::Instance::LoadBalancedV1
-        - Evoila::IaaS::Instance::LoadBalanced
+        - Evoila::IaaS::Instance::LoadBalancedV2
 
   package_upgrade:
     type: boolean

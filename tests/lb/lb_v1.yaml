@@ -1,0 +1,43 @@
+heat_template_version: 2015-10-15
+description: TCP LoadBalancerV1 Test
+
+parameter_groups:
+
+parameters:
+
+  dns_nameservers:
+    type: comma_delimited_list
+    description: List of DNS servers  
+
+resources:
+
+  network:
+    type: OS::Neutron::Net
+    properties:
+      name: testnetwork
+
+  subnet:
+    type: OS::Neutron::Subnet
+    properties:
+      name: testsubnet
+      network_id: { get_resource: network }
+      cidr: 192.168.0.0/24
+      dns_nameservers: { get_param: dns_nameservers }
+
+  loadbalancer:
+    type: Evoila::IaaS::LoadBalancer::TCPV1 
+    properties:
+      name: lb-v1
+      subnet: { get_resource: subnet }
+      port: 22
+
+outputs:
+
+  lb_vip_addr:
+    value: { get_attr: [ loadbalancer, vip_address ] }
+
+  lb_vip_port_id:
+    value: { get_attr: [ loadbalancer, vip_port_id ] }
+
+  pool_id:
+    value: { get_attr: [ loadbalancer, pool ] }
