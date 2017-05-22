@@ -1,0 +1,2 @@
+resource_registry:
+  "Evoila::IaaS::LoadBalancer::TCP": ../../src/loadbalancer/tcp_v1.yaml 
