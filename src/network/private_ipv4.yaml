@@ -28,6 +28,10 @@ parameters:
     description: A list of host routes to propagate in the subnet
     default: []
 
+  enable_dhcp:
+    type: boolean
+    default: True
+
 resources:
 
   network:
@@ -44,6 +48,7 @@ resources:
       dns_nameservers: { get_param: dns_nameservers }
       host_routes: { get_param: host_routes }
       ip_version: 4
+      enable_dhcp: { get_param: enable_dhcp }
       gateway_ip: null
 
 outputs:
