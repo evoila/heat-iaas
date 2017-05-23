@@ -28,8 +28,6 @@ parameters:
   dns_nameservers:
     type: comma_delimited_list
     description: List of DNS servers
-    default:
-      - 8.8.8.8
 
 resources:
 
@@ -43,7 +41,7 @@ resources:
   networking1:
     type: Evoila::IaaS::NetworkLayout::Simple
     properties:
-      name: lbc-net
+      name: lbc
       network_cidr: 192.168.0.0/24
       router: { get_resource: router }
       dns_nameservers: { get_param: dns_nameservers }
@@ -63,26 +61,18 @@ resources:
         #!/bin/bash
         echo "Configuration 1"
 
-  script2:
-    type: OS::Heat::SoftwareConfig
-    properties:
-      group: ungrouped
-      config: |
-        #!/bin/bash
-        echo "Configuration 2"
-
   config:
     type: OS::Heat::MultipartMime
     properties:
       parts:
         - config: { get_resource: script1 }
-        - config: { get_resource: script2 }
 
   load_balanced_cluster1:
     type: Evoila::IaaS::Cluster::LoadBalanced
     properties:
       count: 2
       name: lbc
+      instance_type: Evoila::IaaS::Instance::LoadBalancedV1
       key: { get_param: key }
       image: { get_param: image }
       flavor: { get_param: flavor }
@@ -90,7 +80,7 @@ resources:
         - { get_resource: security_group }
       config: { get_resource: config }
       subnets:
-        - { get_attr: [networking1, subnet] }
+        - { get_attr: [ networking1, subnet ] }
       extras:
         port: 22 
         volume_count: 0

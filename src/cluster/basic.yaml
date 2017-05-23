@@ -64,7 +64,7 @@ parameters:
 
   instance_type:
     type: string
-    description: The resource type to use to create cluster instances. The type must be compatible to Lib::Instance.
+    description: The resource type to use to create cluster instances. The type must be compatible to Evoila::IaaS::Instance::Basic.
     default: Evoila::IaaS::Instance::Basic
     constraints:
       - allowed_values:
