@@ -47,5 +47,8 @@ outputs:
   network:
     value: { get_attr: [service_network, network] }
 
+  network_name:
+    value: { get_attr: [service_network, network_name ] }
+
   subnet:
     value: { get_attr: [service_network, subnet] }

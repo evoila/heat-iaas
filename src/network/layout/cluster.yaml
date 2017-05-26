@@ -61,11 +61,17 @@ outputs:
   service_network:
     value: { get_attr: [service_network, network] }
 
+  service_network_name:
+    value: { get_attr: [service_network, network_name ] }
+
   service_subnet:
     value: { get_attr: [service_network, subnet] }
 
   cluster_network:
     value: { get_attr: [cluster_network, network] }
+
+  cluster_network_name:
+    value: { get_attr: [cluster_network, network_name ] }
 
   cluster_subnet:
     value: { get_attr: [cluster_network, subnet] }
