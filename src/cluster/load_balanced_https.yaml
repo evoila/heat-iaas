@@ -176,10 +176,6 @@ resources:
           scheduler_hints:
             group: { get_resource: policy_group }
 
-  package_upgrade:
-    type: boolean
-    default: false
-
 outputs:
 
   attributes_id:
