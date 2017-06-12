@@ -92,7 +92,7 @@ parameters:
       - allowed_values:
         - Evoila::IaaS::Instance::LoadBalanced
         - Evoila::IaaS::Instance::LoadBalancedV1
-        - Evoila::IaaS::Instance::LoadBalanced
+        - Evoila::IaaS::Instance::LoadBalancedV2
 
   url_path:
     type: string
@@ -147,7 +147,7 @@ resources:
         - config: { get_resource: script1 }
 
   load_balancer:
-    type: Evoila::IaaS::LoadBalancer::TCP::HTTPSV2
+    type: Evoila::IaaS::LoadBalancer::HTTPS
     properties:
       name: { get_param: name }
       subnet: { get_param: [subnets, 0] }
@@ -161,7 +161,7 @@ resources:
     properties:
       count: { get_param: count }
       resource_def:
-        type: Evoila::IaaS::Instance::LoadBalanced
+        type: { get_param: instance_type }
         properties:
           name:
             list_join: ['-', [{ get_param: name }, '%index%']]
@@ -175,10 +175,6 @@ resources:
           extras: { get_param: extras }
           scheduler_hints:
             group: { get_resource: policy_group }
-
-  package_upgrade:
-    type: boolean
-    default: false
 
 outputs:
 
