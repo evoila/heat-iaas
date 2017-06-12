@@ -147,7 +147,7 @@ resources:
         - config: { get_resource: script1 }
 
   load_balancer:
-    type: Evoila::IaaS::LoadBalancer::TCP::HTTPSV2
+    type: Evoila::IaaS::LoadBalancer::HTTPS
     properties:
       name: { get_param: name }
       subnet: { get_param: [subnets, 0] }
