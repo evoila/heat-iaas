@@ -92,7 +92,7 @@ parameters:
       - allowed_values:
         - Evoila::IaaS::Instance::LoadBalanced
         - Evoila::IaaS::Instance::LoadBalancedV1
-        - Evoila::IaaS::Instance::LoadBalanced
+        - Evoila::IaaS::Instance::LoadBalancedV2
 
   url_path:
     type: string
@@ -161,7 +161,7 @@ resources:
     properties:
       count: { get_param: count }
       resource_def:
-        type: Evoila::IaaS::Instance::LoadBalanced
+        type: { get_param: instance_type }
         properties:
           name:
             list_join: ['-', [{ get_param: name }, '%index%']]
