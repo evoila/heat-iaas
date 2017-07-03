@@ -31,9 +31,17 @@ parameters:
     constraints:
       - custom_constraint: nova.flavor
 
-  subnets:
-    type: comma_delimited_list
-    description: List of subnets to connect the instance to
+  network:
+    type: string
+    description: The network to connect the instance to
+    constraints:
+      - custom_constraint: neutron.network
+
+  subnet:
+    type: string
+    description: The subnet belonging to the network
+    constraints:
+      - custom_constraint: neutron.subnet
 
   security_groups:
     type: comma_delimited_list
@@ -62,6 +70,10 @@ parameters:
     type: boolean
     default: false
 
+  allowed_address_pairs:
+    type: json
+    default: []
+
 resources:
 
   node:
@@ -73,7 +85,9 @@ resources:
       flavor: { get_param: flavor }
       config: { get_param: config }
       security_groups: { get_param: security_groups }
-      subnets: { get_param: subnets }
+      network: { get_param: network }
+      subnet: { get_param: subnet }
+      allowed_address_pairs: { get_param: allowed_address_pairs }
       scheduler_hints: { get_param: scheduler_hints }
       extras: { get_param: extras }
       package_upgrade: { get_param: package_upgrade }
@@ -84,7 +98,7 @@ resources:
       pool: { get_param: pool }
       address: {get_attr: [node, first_address]}
       protocol_port: { get_param: [extras, port] }
-      subnet: { str_split: [',', list_join: [',', { get_param: subnets }], 0 ] }
+      subnet: { get_param: subnet }
 
 outputs:
 

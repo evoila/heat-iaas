@@ -125,8 +125,8 @@ resources:
       key: { get_param: key }
       image: { get_param: image }
       flavor: { get_param: flavor }
-      subnets:
-        - { get_resource: subnet1 }
+      network: { get_resource: network1 }
+      subnet: { get_resource: subnet1 }
       security_groups:
         - default
         - { get_resource: security_group }

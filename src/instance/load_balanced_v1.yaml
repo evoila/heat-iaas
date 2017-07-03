@@ -31,9 +31,17 @@ parameters:
     constraints:
       - custom_constraint: nova.flavor
 
-  subnets:
-    type: comma_delimited_list
-    description: List of subnets to connect the instance to
+  network:
+    type: string
+    description: The network to connect the instance to
+    constraints:
+      - custom_constraint: neutron.network
+
+  subnet:
+    type: string
+    description: The subnet belonging to the network
+    constraints:
+      - custom_constraint: neutron.subnet
 
   security_groups:
     type: comma_delimited_list
@@ -58,6 +66,10 @@ parameters:
     description: >
       A map which is used in addition to the default parameters.
 
+  allowed_address_pairs:
+    type: json
+    default: []
+
 resources:
 
   node:
@@ -69,7 +81,9 @@ resources:
       flavor: { get_param: flavor }
       config: { get_param: config }
       security_groups: { get_param: security_groups }
-      subnets: { get_param: subnets }
+      network: { get_param: network }
+      subnet: { get_param: subnet }
+      allowed_address_pairs: { get_param: allowed_address_pairs }
       scheduler_hints: { get_param: scheduler_hints }
       extras: { get_param: extras }
 
