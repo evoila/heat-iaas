@@ -30,9 +30,17 @@ parameters:
     constraints:
       - custom_constraint: nova.flavor
 
-  subnets:
-    type: comma_delimited_list
-    description: List of subnets to connect the instance to
+  network:
+    type: string
+    description: The network to connect the instance to
+    constraints:
+      - custom_constraint: neutron.network
+
+  subnet:
+    type: string
+    description: The subnet belonging to the network
+    constraints:
+      - custom_constraint: neutron.subnet
 
   security_groups:
     type: comma_delimited_list
@@ -58,39 +66,55 @@ parameters:
       volume_count: 0
       volume_size: 0
 
+  software_config_transport:
+    type: string
+    default: POLL_SERVER_HEAT
+    constraints:
+      - allowed_values:
+          - POLL_SERVER_HEAT
+          - POLL_SERVER_CFN
+          - POLL_TEMP_URL
+          - ZAQAR_MESSAGE
+
   package_upgrade:
     type: boolean
     default: false
 
+  allowed_address_pairs:
+    type: json
+    default: []
+
 resources:
 
-    random:
-      type: OS::Heat::RandomString
-      properties:
-        length: 8
-        sequence: lowercase
+  random:
+    type: OS::Heat::RandomString
+    properties:
+      length: 8
+      sequence: lowercase
 
-    node:
-      type: Evoila::IaaS::Instance::Basic
-      properties:
-        name:
-          list_join:
-            - '-'
-            - [ { get_param: name }, { get_resource: random} ]
-        key: { get_param: key }
-        image: { get_param: image }
-        flavor: { get_param: flavor }
-        subnets: { get_param: subnets }
-        security_groups: { get_param: security_groups }
-        config: { get_param: config }
-        scheduler_hints: { get_param: scheduler_hints }
-        extras: { get_param: extras }
-        package_upgrade: { get_param: package_upgrade }
+  node:
+    type: Evoila::IaaS::Instance::Basic
+    properties:
+      name:
+        list_join:
+          - '-'
+          - [ { get_param: name }, { get_resource: random} ]
+      key: { get_param: key }
+      image: { get_param: image }
+      flavor: { get_param: flavor }
+      network: { get_param: network }
+      subnet: { get_param: subnet }
+      allowed_address_pairs: { get_param: allowed_address_pairs }
+      security_groups: { get_param: security_groups }
+      config: { get_param: config }
+      scheduler_hints: { get_param: scheduler_hints }
+      extras: { get_param: extras }
+      package_upgrade: { get_param: package_upgrade }
 
 outputs:
 
   id:
-    value: { get_attr: [ node, id ] }
+    value: { get_resource: node }
 
   accessIPv4:
     value: { get_attr: [node, accessIPv4] }

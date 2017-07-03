@@ -48,19 +48,6 @@ resources:
       cidr: 192.168.0.0/24
       dns_nameservers: { get_param: dns_nameservers }
 
-  network2:
-    type: OS::Neutron::Net
-    properties:
-      name: test-network2
-
-  subnet2:
-    type: OS::Neutron::Subnet
-    properties:
-      name: test-subnet2
-      network_id: { get_resource: network2 }
-      cidr: 192.168.1.0/24
-      dns_nameservers: { get_param: dns_nameservers }
-
   router:
     type: OS::Neutron::Router
     properties:
@@ -73,12 +60,6 @@ resources:
     properties:
       router: { get_resource: router }
       subnet: { get_resource: subnet1 }
-
-  router_interface2:
-    type: OS::Neutron::RouterInterface
-    properties:
-      router: { get_resource: router }
-      subnet: { get_resource: subnet2 }
 
   security_group:
     type: OS::Neutron::SecurityGroup
@@ -144,8 +125,8 @@ resources:
       key: { get_param: key }
       image: { get_param: image }
       flavor: { get_param: flavor }
-      subnets:
-        - { get_resource: subnet1 }
+      network: { get_resource: network1 }
+      subnet: { get_resource: subnet1 }
       security_groups:
         - default
         - { get_resource: security_group }
@@ -153,27 +134,6 @@ resources:
     depends_on:
       - network1
       - subnet1
-      - security_group
-
-  instance-multi-homed:
-    type: Evoila::IaaS::Instance::Basic
-    properties:
-      name: instance-multi-homed
-      key: { get_param: key }
-      image: { get_param: image }
-      flavor: { get_param: flavor }
-      subnets:
-        - { get_resource: subnet1 }
-        - { get_resource: subnet2 }
-      security_groups:
-        - default
-        - { get_resource: security_group }
-      config: { get_resource: config }
-    depends_on:
-      - network1
-      - network2
-      - subnet1
-      - subnet2
       - security_group
 
   instance-no-config:
@@ -183,8 +143,8 @@ resources:
       key: { get_param: key }
       image: { get_param: image }
       flavor: { get_param: flavor }
-      subnets:
-        - { get_resource: subnet1 }
+      network: { get_resource: network1 }
+      subnet: { get_resource: subnet1 }
       security_groups:
         - default
         - { get_resource: security_group }
@@ -201,8 +161,8 @@ resources:
       key: { get_param: key }
       image: { get_param: image }
       flavor: { get_param: flavor }
-      subnets:
-        - { get_resource: subnet1 }
+      network: { get_resource: network1 }
+      subnet: { get_resource: subnet1 }
       security_groups:
         - default
         - { get_resource: security_group }
@@ -219,8 +179,8 @@ resources:
       key: { get_param: key }
       image: { get_param: image }
       flavor: { get_param: flavor }
-      subnets:
-        - { get_resource: subnet1 }
+      network: { get_resource: network1 }
+      subnet: { get_resource: subnet1 }
       security_groups:
         - default
         - { get_resource: security_group }
@@ -228,6 +188,26 @@ resources:
       extras:
         volume_count: 2
         volume_size: 1
+    depends_on:
+      - network1
+      - subnet1
+      - security_group
+
+  instance-with-vip:
+    type: Evoila::IaaS::Instance::Basic
+    properties:
+      name: instance-basic
+      key: { get_param: key }
+      image: { get_param: image }
+      flavor: { get_param: flavor }
+      network: { get_resource: network1 }
+      subnet: { get_resource: subnet1 }
+      allowed_address_pairs:
+        - { ip_address: 1.2.3.4 }
+      security_groups:
+        - default
+        - { get_resource: security_group }
+      config: { get_resource: config }
     depends_on:
       - network1
       - subnet1

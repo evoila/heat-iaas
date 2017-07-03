@@ -88,8 +88,28 @@ resources:
       security_groups:
         - { get_resource: security_group }
       config: { get_resource: config }
-      subnets:
-        - { get_attr: [simple_networking1, subnet] }
+      network: { get_attr: [simple_networking1, network] }
+      subnet: { get_attr: [simple_networking1, subnet] }
+      allowed_address_pairs:
+        - ip_address: 1.2.3.4
+      extras:
+        volume_count: 0
+        volume_size: 0
+
+  cluster_random:
+    type: Evoila::IaaS::Cluster::Basic
+    properties:
+      count: 2
+      name: basic1
+      instance_type: Evoila::IaaS::Instance::RandomName
+      key: { get_param: key }
+      image: { get_param: image }
+      flavor: { get_param: flavor }
+      security_groups:
+        - { get_resource: security_group }
+      config: { get_resource: config }
+      network: { get_attr: [simple_networking1, network] }
+      subnet: { get_attr: [simple_networking1, subnet] }
       extras:
         volume_count: 0
         volume_size: 0

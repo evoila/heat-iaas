@@ -89,8 +89,8 @@ resources:
       security_groups:
         - { get_resource: security_group }
       config: { get_resource: config }
-      subnets:
-        - { get_attr: [networking1, subnet] }
+      network: { get_attr: [networking1, network] }
+      subnet: { get_attr: [networking1, subnet] }
       extras:
         port: 22 
         volume_count: 0
