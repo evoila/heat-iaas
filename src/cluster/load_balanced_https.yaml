@@ -162,7 +162,7 @@ resources:
     type: Evoila::IaaS::LoadBalancer::HTTPS
     properties:
       name: { get_param: name }
-      subnet: { get_param: [subnets, 0] }
+      subnet: { get_param: subnet }
       frontend_port: { get_param: frontend_port }
       url_path: { get_param: url_path }
       expected_codes: { get_param: expected_codes }
