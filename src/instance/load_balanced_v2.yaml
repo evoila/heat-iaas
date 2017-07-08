@@ -68,7 +68,7 @@ parameters:
 
   package_upgrade:
     type: boolean
-    default: false
+    default: true
 
   allowed_address_pairs:
     type: json
