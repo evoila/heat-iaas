@@ -66,6 +66,10 @@ parameters:
     description: >
       A map which is used in addition to the default parameters.
 
+  package_upgrade:
+    type: boolean
+    default: true
+
   allowed_address_pairs:
     type: json
     default: []
@@ -86,6 +90,7 @@ resources:
       allowed_address_pairs: { get_param: allowed_address_pairs }
       scheduler_hints: { get_param: scheduler_hints }
       extras: { get_param: extras }
+      package_upgrade: { get_param: package_upgrade }
 
   member:
     type: OS::Neutron::PoolMember
