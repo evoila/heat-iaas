@@ -122,7 +122,6 @@ resources:
       key_name: { get_param: key }
       networks:
         - port: { get_resource: port }
-      security_groups: { get_param: security_groups }
       user_data_format: SOFTWARE_CONFIG
       user_data: {get_resource: server_init}
       scheduler_hints: { get_param: scheduler_hints }
